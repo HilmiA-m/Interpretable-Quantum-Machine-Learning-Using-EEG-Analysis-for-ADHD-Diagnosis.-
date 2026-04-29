@@ -7,7 +7,19 @@ from sklearn.metrics import roc_auc_score
 from src import config
 from src.metrics import report
 
-_dev_qcnn = qml.device("default.qubit", wires=config.N_QCNN_QUBITS)
+def _pick_device(n_wires, label=""):
+    for name, _ in [("lightning.gpu", "adjoint"),
+                    ("lightning.qubit", "adjoint"),
+                    ("default.qubit", "backprop")]:
+        try:
+            d = qml.device(name, wires=n_wires)
+            print(f"    [{label}] {name}")
+            return d
+        except Exception:
+            continue
+    raise RuntimeError("No PennyLane device available")
+
+_dev_qcnn = _pick_device(config.N_QCNN_QUBITS, "QCNN")
 
 
 def _conv(p, w):

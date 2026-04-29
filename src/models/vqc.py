@@ -11,14 +11,19 @@ from sklearn.model_selection import train_test_split
 from src import config
 from src.metrics import report
 
-try:
-    _dev  = qml.device("lightning.qubit", wires=config.N_QUBITS)
-    _DIFF = "adjoint"
-    print("    [VQC] lightning.qubit (adjoint)")
-except Exception:
-    _dev  = qml.device("default.qubit", wires=config.N_QUBITS)
-    _DIFF = "backprop"
-    print("    [VQC] default.qubit (backprop)")
+def _pick_device(n_wires, label=""):
+    for name, diff in [("lightning.gpu",   "adjoint"),
+                       ("lightning.qubit", "adjoint"),
+                       ("default.qubit",   "backprop")]:
+        try:
+            d = qml.device(name, wires=n_wires)
+            print(f"    [{label}] {name} ({diff})")
+            return d, diff
+        except Exception:
+            continue
+    raise RuntimeError("No PennyLane device available")
+
+_dev, _DIFF = _pick_device(config.N_QUBITS, "VQC")
 
 _N_ENC    = config.N_LAYERS * config.N_QUBITS * 3
 _N_ROT    = _N_ENC
