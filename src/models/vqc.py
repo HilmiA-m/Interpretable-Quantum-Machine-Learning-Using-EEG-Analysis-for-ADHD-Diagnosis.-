@@ -188,7 +188,8 @@ def run_vqc(X_tr_raw, y_tr, X_te_q, y_te, ss_q, pca, mm):
     p_vqc = np.average(
         np.stack([vqc_proba(rec["params"], X_te_q) for rec in top_k]),
         axis=0, weights=w_k)
-    np.save(os.path.join(config.DATA_ROOT, "best_quantum_params_v40.npy"),
+    os.makedirs(config.RESULTS_DIR, exist_ok=True)
+    np.save(os.path.join(config.RESULTS_DIR, "best_quantum_params_v40.npy"),
             np.array(top_k[0]["params"]))
 
     t_vqc, y_pred_vqc, _ = report("VQC", y_te, p_vqc, y_val, p_vqc_val)

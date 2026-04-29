@@ -64,3 +64,4 @@ OCCIPITAL     = [CGX_CH.index(c) for c in ["Oz", "O1", "O2", "PO7", "PO8"]]
 _src_dir      = os.path.dirname(os.path.abspath(__file__))
 _project_dir  = os.path.dirname(_src_dir)
 WORKER_SCRIPT = os.path.join(_project_dir, "workers", "vqc_subprocess_runner.py")
+RESULTS_DIR   = os.path.join(_project_dir, "RESULTS")

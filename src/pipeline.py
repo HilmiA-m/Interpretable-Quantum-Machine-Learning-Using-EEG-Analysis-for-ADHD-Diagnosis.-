@@ -2,6 +2,7 @@ import os
 import sys
 import warnings
 import random
+from datetime import datetime
 import numpy as np
 
 warnings.filterwarnings("ignore")
@@ -12,8 +13,13 @@ random.seed(42)
 def run():
     from src import config
 
+    _ts     = datetime.now()
+    _run_id = f"run_{_ts.strftime('%Y%m%d_%H%M%S')}"
+    _ts_str = _ts.isoformat(timespec="seconds")
+
     print("=" * 72)
-    print("BALLADEER — Quantum ML for ADHD  (v40: curated features + no SMOTE)")
+    print(f"BALLADEER — Quantum ML for ADHD  (v40: curated features + no SMOTE)")
+    print(f"Run ID: {_run_id}")
     print("=" * 72)
 
     if not os.path.exists(config.WORKER_SCRIPT):
@@ -51,6 +57,12 @@ def run():
     from src.dataset import build_dataset, preprocess
     X_raw, y, _uid_list, feat_names = build_dataset(
         user_meta, embrace_lookup, embrace_cols)
+    _dataset_info = {
+        "n_subjects": int(len(y)),
+        "n_adhd":     int(y.sum()),
+        "n_control":  int((y == 0).sum()),
+        "n_features": int(X_raw.shape[1]),
+    }
 
     # ── 6. Preprocess ────────────────────────────────────────────────────────
     print(f"\n[6] Split → StandardScale → PCA-{config.N_PCA} (quantum) / raw (classical)")
@@ -117,7 +129,19 @@ def run():
                   "XGBoost": cls["xgb"]["y_pred"]}
     thresholds = {"VQC": vqc["t"],       "QSVM-ZZ": qsvm["t"],      "QCNN-8": qcnn["t"],
                   "SVM": cls["svm"]["t"], "RF": cls["rf"]["t"],      "XGBoost": cls["xgb"]["t"]}
-    save_figures(y_te, probas, preds, thresholds, cls["feat_imp"])
+    save_figures(y_te, probas, preds, thresholds, cls["feat_imp"], run_id=_run_id)
+
+    # ── 13. Save JSON results ────────────────────────────────────────────────
+    from src.results import save_run, update_best
+    print(f"\n[13] Saving results → RESULTS/{_run_id}.json  +  BEST_RESULTS.json")
+    _config_snapshot = {
+        "n_qubits": config.N_QUBITS, "n_layers": config.N_LAYERS,
+        "n_pca":    config.N_PCA,    "n_restarts": config.N_RESTARTS,
+        "epochs":   config.EPOCHS,   "ensemble_k": config.ENSEMBLE_K,
+        "test_size": config.TEST_SIZE,
+    }
+    _payload = save_run(_run_id, _ts_str, results, _dataset_info, _config_snapshot)
+    update_best(_payload)
 
     # ── 13. Summary ──────────────────────────────────────────────────────────
     N_PARAMS_VQC = _N_ENC = config.N_LAYERS * config.N_QUBITS * 3
@@ -128,6 +152,7 @@ def run():
 {'='*72}
 BALLADEER v40 — COMPLETE (curated features, no SMOTE)
 {'='*72}
+Run ID      : {_run_id}
 Subjects    : {len(y)} | ADHD={int(y.sum())} Control={int((y == 0).sum())}
 Features    : {X_raw.shape[1]} curated (same for quantum + classical)
 Q pipeline  : {X_raw.shape[1]} → PCA-{config.N_PCA} → [0,π]
@@ -149,8 +174,13 @@ Best F1     : {best_f1}  = {results[best_f1]['f1']:.3f}
 Best ROC-AUC: {best_roc} = {results[best_roc]['roc_auc']:.3f}
 Best PR-AUC : {best_pr}  = {results[best_pr]['pr_auc']:.3f}
 
-Outputs: roc_curves_v40.png  pr_curves_v40.png
-         confusion_matrices_v40.png  feature_importance_v40.png
-         best_quantum_params_v40.npy
+Outputs (RESULTS/):
+  {_run_id}.json
+  roc_curves_{_run_id}.png
+  pr_curves_{_run_id}.png
+  confusion_matrices_{_run_id}.png
+  feature_importance_{_run_id}.png
+  best_quantum_params_v40.npy
+  BEST_RESULTS.json
 {'='*72}
 """)
