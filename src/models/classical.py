@@ -1,3 +1,4 @@
+import subprocess
 import numpy as np
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
@@ -5,6 +6,15 @@ from sklearn.model_selection import StratifiedKFold, GridSearchCV, cross_val_pre
 from xgboost import XGBClassifier
 
 from src.metrics import report
+
+
+def _cuda_available():
+    try:
+        return subprocess.run(["nvidia-smi"], capture_output=True, timeout=3).returncode == 0
+    except Exception:
+        return False
+
+_XGB_DEVICE = "cuda" if _cuda_available() else "cpu"
 
 
 def run_classical_baselines(X_tr_cls, y_tr, X_te_cls, y_te, feat_names):
@@ -64,21 +74,21 @@ def run_classical_baselines(X_tr_cls, y_tr, X_te_cls, y_te, feat_names):
     }
     xgb = GridSearchCV(
         XGBClassifier(eval_metric="logloss", scale_pos_weight=spw,
-                      random_state=42, n_jobs=1),
+                      device=_XGB_DEVICE, random_state=42, n_jobs=1),
         xgb_grid, cv=cv, n_jobs=-1, scoring="roc_auc",
     ).fit(X_tr_cls, y_tr)
     p_xgb = xgb.predict_proba(X_te_cls)[:, 1]
     print(f"  XGB: {xgb.best_params_}  CV={xgb.best_score_:.3f}")
     p_xgb_oof = cross_val_predict(
         XGBClassifier(eval_metric="logloss", scale_pos_weight=spw,
-                      random_state=42, n_jobs=1, **xgb.best_params_),
+                      device=_XGB_DEVICE, random_state=42, n_jobs=1, **xgb.best_params_),
         X_tr_cls, y_tr, cv=5, method="predict_proba")[:, 1]
     t_xgb, y_pred_xgb, _ = report("XGBoost", y_te, p_xgb, y_tr, p_xgb_oof)
 
     # Feature importance
     print("\n[10b] Feature importance (XGBoost)...")
     xgb_final = XGBClassifier(eval_metric="logloss", scale_pos_weight=spw,
-                               random_state=42, n_jobs=1, **xgb.best_params_)
+                               device=_XGB_DEVICE, random_state=42, n_jobs=1, **xgb.best_params_)
     xgb_final.fit(X_tr_cls, y_tr)
     imps   = xgb_final.feature_importances_
     n_plot = min(len(feat_names), len(imps))

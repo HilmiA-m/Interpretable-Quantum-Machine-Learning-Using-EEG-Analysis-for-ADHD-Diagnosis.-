@@ -18,7 +18,6 @@ Improvements vs the missing v38 runner:
 
 import os, sys
 os.environ["TF_METAL_DISABLE"]     = "1"
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 
 import numpy as np
@@ -66,12 +65,19 @@ BARREN_FLOOR   = 1e-5     # gradient norm below this after warmup → dead resta
 BARREN_CHECK   = WARMUP + VAL_EVERY  # epoch at which we check
 
 # ─── device ──────────────────────────────────────────────────────────────────
-try:
-    dev = qml.device("lightning.qubit", wires=N_QUBITS)
-    diff_method = "adjoint"
-except Exception:
-    dev = qml.device("default.qubit", wires=N_QUBITS)
-    diff_method = "backprop"
+def _pick_device(n_wires):
+    for name, diff in [("lightning.gpu",   "adjoint"),
+                       ("lightning.qubit", "adjoint"),
+                       ("default.qubit",   "backprop")]:
+        try:
+            d = qml.device(name, wires=n_wires)
+            print(f"[worker] {name} ({diff})", flush=True)
+            return d, diff
+        except Exception:
+            continue
+    raise RuntimeError("No PennyLane device available")
+
+dev, diff_method = _pick_device(N_QUBITS)
 
 # ─── circuit ─────────────────────────────────────────────────────────────────
 @qml.qnode(dev, interface="autograd", diff_method=diff_method)
