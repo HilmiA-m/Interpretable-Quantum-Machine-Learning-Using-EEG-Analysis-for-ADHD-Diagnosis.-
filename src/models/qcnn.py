@@ -81,7 +81,8 @@ def run_qcnn(X_tr_raw, y_tr, X_te_q, y_te, ss_q, pca, mm):
           f"{config.QCNN_RESTARTS}R×{config.QCNN_EPOCHS}ep, top-{config.QCNN_TOP_K}")
 
     X_in_raw, X_val_raw, y_in, y_val = train_test_split(
-        X_tr_raw, y_tr, test_size=0.2, random_state=42, stratify=y_tr)
+        X_tr_raw, y_tr, test_size=0.2, random_state=42, stratify=y_tr,
+    )
     X_in  = mm.transform(pca.transform(ss_q.transform(X_in_raw)))
     X_val = mm.transform(pca.transform(ss_q.transform(X_val_raw)))
 

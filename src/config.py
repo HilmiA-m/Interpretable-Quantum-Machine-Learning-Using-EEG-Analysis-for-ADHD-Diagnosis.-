@@ -59,7 +59,9 @@ CGX_CH = [
 N_CGX         = len(CGX_CH)
 LEFT_FRONTAL  = [CGX_CH.index(c) for c in ["AF7", "F7", "Fp1", "F3"]]
 RIGHT_FRONTAL = [CGX_CH.index(c) for c in ["AF8", "F8", "Fp2", "F4"]]
+FRONTAL       = LEFT_FRONTAL + RIGHT_FRONTAL
 OCCIPITAL     = [CGX_CH.index(c) for c in ["Oz", "O1", "O2", "PO7", "PO8"]]
+CENTRAL       = [CGX_CH.index(c) for c in ["Cz", "C3", "C4"]]
 
 _src_dir      = os.path.dirname(os.path.abspath(__file__))
 _project_dir  = os.path.dirname(_src_dir)
