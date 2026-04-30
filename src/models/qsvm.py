@@ -140,4 +140,6 @@ def run_qsvm(X_tr_raw, y_tr, X_te_q, y_te, ss_q, pca, mm):
 
     t_qsvm, y_pred_qsvm, _ = report("QSVM-ZZ", y_te, p_qsvm, y_tr, qsvm_oof)
     return {"p": p_qsvm, "y_pred": y_pred_qsvm, "t": t_qsvm,
-            "best_C": best_C, "use_nystroem": use_nystroem}
+            "best_C": best_C, "use_nystroem": use_nystroem,
+            "K_tr": K_tr,     # raw (possibly centered) training kernel matrix for KTA
+            "X_tr_q": X_tr_q} # quantum-pipeline train features for KTA classical comparison

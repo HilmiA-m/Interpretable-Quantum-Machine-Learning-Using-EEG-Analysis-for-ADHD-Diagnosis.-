@@ -98,6 +98,10 @@ def run():
     _X_cls_all = _SS().fit_transform(X_raw)
     _cv_results = run_repeated_cv(_X_cls_all, y)
 
+    # ── 10d. Modality ablation study ─────────────────────────────────────────
+    from src.ablation import run_ablation
+    _ablation = run_ablation(data["X_tr_raw"], y_tr, feat_names, _run_id)
+
     # ── 11. Results table ────────────────────────────────────────────────────
     from src.metrics import model_row
     results = {
@@ -127,8 +131,7 @@ def run():
     print(f"  Best ROC-AUC: {best_roc} = {results[best_roc]['roc_auc']:.3f}")
     print(f"  Best PR-AUC : {best_pr}  = {results[best_pr]['pr_auc']:.3f}")
 
-    # ── 12. Figures ──────────────────────────────────────────────────────────
-    from src.figures import save_figures
+    # ── 11b. Pairwise statistical significance tests ──────────────────────────
     probas     = {"VQC": vqc["p"],       "QSVM-ZZ": qsvm["p"],      "QCNN-8": qcnn["p"],
                   "SVM": cls["svm"]["p"], "RF": cls["rf"]["p"],      "XGBoost": cls["xgb"]["p"]}
     preds      = {"VQC": vqc["y_pred"],  "QSVM-ZZ": qsvm["y_pred"], "QCNN-8": qcnn["y_pred"],
@@ -136,6 +139,11 @@ def run():
                   "XGBoost": cls["xgb"]["y_pred"]}
     thresholds = {"VQC": vqc["t"],       "QSVM-ZZ": qsvm["t"],      "QCNN-8": qcnn["t"],
                   "SVM": cls["svm"]["t"], "RF": cls["rf"]["t"],      "XGBoost": cls["xgb"]["t"]}
+    from src.stats import run_significance_tests
+    run_significance_tests(y_te, preds, probas, _run_id)
+
+    # ── 12. Figures ──────────────────────────────────────────────────────────
+    from src.figures import save_figures
     save_figures(y_te, probas, preds, thresholds, cls["feat_imp"], run_id=_run_id)
 
     # ── 13. Save JSON results ────────────────────────────────────────────────
@@ -165,7 +173,19 @@ def run():
         probas        = probas,
     )
 
-    # ── 15. Summary ─────────────────────────────────────────────────────────
+    # ── 15. Quantum analyses (KTA + VQC noise robustness) ────────────────────
+    from src.quantum_analysis import run_all as _run_quantum
+    _run_quantum(
+        K_tr_quantum   = qsvm["K_tr"],
+        X_tr_q         = qsvm["X_tr_q"],
+        X_te_q         = data["X_te_q"],
+        y_tr           = y_tr,
+        y_te           = y_te,
+        vqc_top_params = vqc["top_params"],
+        run_id         = _run_id,
+    )
+
+    # ── 16. Summary ──────────────────────────────────────────────────────────
     N_PARAMS_VQC = _N_ENC = config.N_LAYERS * config.N_QUBITS * 3
     N_PARAMS_VQC = N_PARAMS_VQC * 2 + config.N_QUBITS + 1
     nystr_tag = f" Nyström m={config.NYSTROEM_M}" if qsvm["use_nystroem"] else " full"
@@ -202,8 +222,8 @@ Repeated CV (classical, 5-fold × 3):
   XGBoost : {_cv_results['XGBoost']['mean']:.3f} ± {_cv_results['XGBoost']['std']:.3f}
 
 Outputs (RESULTS/):
-  {_run_id}.json              ← full metrics + config snapshot
-  BEST_RESULTS.json           ← all-time bests across runs
+  {_run_id}.json                    ← full metrics + config snapshot
+  BEST_RESULTS.json                 ← all-time bests across runs
   roc_curves_{_run_id}.png
   pr_curves_{_run_id}.png
   confusion_matrices_{_run_id}.png
@@ -214,6 +234,15 @@ Outputs (RESULTS/):
   pca_loadings_{_run_id}.png
   vqc_encoding_{_run_id}.png
   calibration_{_run_id}.png
+  mcnemar_heatmap_{_run_id}.png     ← pairwise McNemar p-values
+  auc_diff_matrix_{_run_id}.png     ← bootstrap AUC differences
+  significance_tests_{_run_id}.json
+  ablation_{_run_id}.png            ← modality ablation bar chart
+  ablation_{_run_id}.json
+  kta_{_run_id}.png                 ← kernel target alignment
+  kta_{_run_id}.json
+  vqc_noise_{_run_id}.png           ← VQC noise robustness
+  vqc_noise_{_run_id}.json
   best_quantum_params_v40.json
 {'='*72}
 """)
