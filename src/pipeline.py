@@ -87,9 +87,16 @@ def run():
     qcnn = run_qcnn(X_tr_raw, y_tr, X_te_q, y_te, ss_q, pca, mm)
 
     # ── 10. Classical baselines ──────────────────────────────────────────────
-    from src.models.classical import run_classical_baselines
+    from src.models.classical import run_classical_baselines, run_repeated_cv
     cls = run_classical_baselines(
         data["X_tr_cls"], y_tr, data["X_te_cls"], y_te, feat_names)
+
+    # ── 10c. Repeated CV robustness check (classical only) ───────────────────
+    # Full-dataset repeated K-fold gives variance-aware estimates independent
+    # of the single 80/20 split. Quantum models are excluded (too slow to CV).
+    from sklearn.preprocessing import StandardScaler as _SS
+    _X_cls_all = _SS().fit_transform(X_raw)
+    _cv_results = run_repeated_cv(_X_cls_all, y)
 
     # ── 11. Results table ────────────────────────────────────────────────────
     from src.metrics import model_row
@@ -143,7 +150,22 @@ def run():
     _payload = save_run(_run_id, _ts_str, results, _dataset_info, _config_snapshot)
     update_best(_payload)
 
-    # ── 13. Summary ──────────────────────────────────────────────────────────
+    # ── 14. Interpretability ─────────────────────────────────────────────────
+    from src.interpretability import run_all as _run_interp
+    _run_interp(
+        xgb_model     = cls["xgb_model"],
+        svm_estimator = cls["svm_estimator"],
+        pca           = pca,
+        vqc_top_params= vqc["top_params"],
+        X_tr_cls      = data["X_tr_cls"],
+        X_te_cls      = data["X_te_cls"],
+        y_te          = y_te,
+        feat_names    = feat_names,
+        run_id        = _run_id,
+        probas        = probas,
+    )
+
+    # ── 15. Summary ─────────────────────────────────────────────────────────
     N_PARAMS_VQC = _N_ENC = config.N_LAYERS * config.N_QUBITS * 3
     N_PARAMS_VQC = N_PARAMS_VQC * 2 + config.N_QUBITS + 1
     nystr_tag = f" Nyström m={config.NYSTROEM_M}" if qsvm["use_nystroem"] else " full"
@@ -174,13 +196,24 @@ Best F1     : {best_f1}  = {results[best_f1]['f1']:.3f}
 Best ROC-AUC: {best_roc} = {results[best_roc]['roc_auc']:.3f}
 Best PR-AUC : {best_pr}  = {results[best_pr]['pr_auc']:.3f}
 
+Repeated CV (classical, 5-fold × 3):
+  SVM     : {_cv_results['SVM']['mean']:.3f} ± {_cv_results['SVM']['std']:.3f}
+  RF      : {_cv_results['RF']['mean']:.3f} ± {_cv_results['RF']['std']:.3f}
+  XGBoost : {_cv_results['XGBoost']['mean']:.3f} ± {_cv_results['XGBoost']['std']:.3f}
+
 Outputs (RESULTS/):
-  {_run_id}.json
+  {_run_id}.json              ← full metrics + config snapshot
+  BEST_RESULTS.json           ← all-time bests across runs
   roc_curves_{_run_id}.png
   pr_curves_{_run_id}.png
   confusion_matrices_{_run_id}.png
   feature_importance_{_run_id}.png
+  shap_beeswarm_{_run_id}.png
+  shap_bar_{_run_id}.png
+  permutation_importance_{_run_id}.png
+  pca_loadings_{_run_id}.png
+  vqc_encoding_{_run_id}.png
+  calibration_{_run_id}.png
   best_quantum_params_v40.npy
-  BEST_RESULTS.json
 {'='*72}
 """)

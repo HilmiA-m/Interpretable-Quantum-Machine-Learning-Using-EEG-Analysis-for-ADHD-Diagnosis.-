@@ -193,4 +193,10 @@ def run_vqc(X_tr_raw, y_tr, X_te_q, y_te, ss_q, pca, mm):
             np.array(top_k[0]["params"]))
 
     t_vqc, y_pred_vqc, _ = report("VQC", y_te, p_vqc, y_val, p_vqc_val)
-    return {"p": p_vqc, "y_pred": y_pred_vqc, "t": t_vqc, "n_good": len(good_k)}
+    return {
+        "p":          p_vqc,
+        "y_pred":     y_pred_vqc,
+        "t":          t_vqc,
+        "n_good":     len(good_k),
+        "top_params": np.array(top_k[0]["params"]),  # best restart params for interpretability
+    }
