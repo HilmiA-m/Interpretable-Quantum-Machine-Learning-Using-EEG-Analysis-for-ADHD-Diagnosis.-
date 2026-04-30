@@ -10,7 +10,7 @@ np.random.seed(42)
 random.seed(42)
 
 
-def run():
+def run(skip_vqc=False, skip_qsvm=False, skip_qcnn=False):
     from src import config
 
     _ts     = datetime.now()
@@ -77,15 +77,53 @@ def run():
 
     # ── 7. VQC ───────────────────────────────────────────────────────────────
     from src.models.vqc import run_vqc
-    vqc = run_vqc(X_tr_raw, y_tr, X_te_q, y_te, ss_q, pca, mm)
+    if skip_vqc:
+        import json as _json
+        import pennylane.numpy as pnp
+        from src.metrics import report as _report
+        _vp = os.path.join(config.RESULTS_DIR, "best_quantum_params_v40.json")
+        if not os.path.exists(_vp):
+            sys.exit(f"\n[FATAL] --skip-vqc requested but {_vp} not found.\n")
+        with open(_vp) as _f:
+            _vd = _json.load(_f)
+        _params = pnp.array(_vd["params"], requires_grad=False)
+        from src.models.vqc import vqc_proba
+        p_vqc = vqc_proba(_params, X_te_q)
+        _oof_half = np.full(len(y_tr), 0.5)
+        t_vqc, y_pred_vqc, _ = _report("VQC (loaded)", y_te, p_vqc, y_tr, _oof_half)
+        vqc = {"p": p_vqc, "y_pred": y_pred_vqc, "t": t_vqc,
+               "n_good": 1, "top_params": np.array(_vd["params"])}
+        print(f"    [skip-vqc] Loaded params from {_vp}  (val_AUC={_vd['val_auc']:.3f})")
+    else:
+        vqc = run_vqc(X_tr_raw, y_tr, X_te_q, y_te, ss_q, pca, mm)
 
     # ── 8. QSVM ──────────────────────────────────────────────────────────────
     from src.models.qsvm import run_qsvm
-    qsvm = run_qsvm(X_tr_raw, y_tr, X_te_q, y_te, ss_q, pca, mm)
+    if skip_qsvm:
+        from src.metrics import report as _report
+        p_qs = np.full(len(y_te), 0.5)
+        t_qs, y_pred_qs, _ = _report("QSVM-ZZ (skipped)", y_te, p_qs, y_tr,
+                                      np.full(len(y_tr), 0.5))
+        K_dummy = np.eye(len(y_tr))
+        X_tr_q_dummy = mm.transform(pca.transform(ss_q.transform(X_tr_raw)))
+        qsvm = {"p": p_qs, "y_pred": y_pred_qs, "t": t_qs,
+                "best_C": None, "use_nystroem": False,
+                "K_tr": K_dummy, "X_tr_q": X_tr_q_dummy}
+        print("    [skip-qsvm] QSVM skipped — dummy 0.5 predictions used.")
+    else:
+        qsvm = run_qsvm(X_tr_raw, y_tr, X_te_q, y_te, ss_q, pca, mm)
 
     # ── 9. QCNN ──────────────────────────────────────────────────────────────
     from src.models.qcnn import run_qcnn
-    qcnn = run_qcnn(X_tr_raw, y_tr, X_te_q, y_te, ss_q, pca, mm)
+    if skip_qcnn:
+        from src.metrics import report as _report
+        p_qc = np.full(len(y_te), 0.5)
+        t_qc, y_pred_qc, _ = _report("QCNN-8 (skipped)", y_te, p_qc, y_tr,
+                                      np.full(len(y_tr), 0.5))
+        qcnn = {"p": p_qc, "y_pred": y_pred_qc, "t": t_qc}
+        print("    [skip-qcnn] QCNN skipped — dummy 0.5 predictions used.")
+    else:
+        qcnn = run_qcnn(X_tr_raw, y_tr, X_te_q, y_te, ss_q, pca, mm)
 
     # ── 10. Classical baselines ──────────────────────────────────────────────
     from src.models.classical import run_classical_baselines, run_repeated_cv
