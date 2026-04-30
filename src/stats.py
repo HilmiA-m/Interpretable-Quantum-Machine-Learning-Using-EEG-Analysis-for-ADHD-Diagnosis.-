@@ -38,7 +38,7 @@ def _mcnemar_pvalue(n01: int, n10: int) -> float:
     return float(chi2_dist.sf(chi2, df=1))
 
 
-def _bootstrap_auc_diff(y_true, proba_a, proba_b, n_boot=1000, seed=42):
+def _bootstrap_auc_diff(y_true, proba_a, proba_b, n_boot=2000, seed=42):
     """Bootstrap 95% CI for (AUC_A − AUC_B).
 
     Returns (mean_diff, ci_lo, ci_hi, approx_p_value).

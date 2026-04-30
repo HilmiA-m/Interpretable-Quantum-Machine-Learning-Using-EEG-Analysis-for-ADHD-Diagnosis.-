@@ -1,6 +1,7 @@
 import subprocess
 import numpy as np
 from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -25,6 +26,21 @@ _XGB_DEVICE = "cuda" if _cuda_available() else "cpu"
 def run_classical_baselines(X_tr_cls, y_tr, X_te_cls, y_te, feat_names):
     print("\n[10] Classical baselines (5-fold CV, roc_auc, class_weight=balanced)")
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+    # ── Logistic Regression (linear baseline) ────────────────────────────────
+    lr_grid = {"C": [0.001, 0.01, 0.1, 1, 10, 100],
+               "solver": ["lbfgs", "liblinear"]}
+    lr = GridSearchCV(
+        LogisticRegression(class_weight="balanced", max_iter=2000, random_state=42),
+        lr_grid, cv=cv, n_jobs=-1, scoring="roc_auc",
+    ).fit(X_tr_cls, y_tr)
+    p_lr = lr.predict_proba(X_te_cls)[:, 1]
+    print(f"  LR:  {lr.best_params_}  CV={lr.best_score_:.3f}")
+    p_lr_oof = cross_val_predict(
+        LogisticRegression(class_weight="balanced", max_iter=2000,
+                           random_state=42, **lr.best_params_),
+        X_tr_cls, y_tr, cv=5, method="predict_proba")[:, 1]
+    t_lr, y_pred_lr, _ = report("LR", y_te, p_lr, y_tr, p_lr_oof)
 
     # ── SVM ──────────────────────────────────────────────────────────────────
     svm_grid = {
@@ -105,6 +121,8 @@ def run_classical_baselines(X_tr_cls, y_tr, X_te_cls, y_te, feat_names):
         print(f"    {fn:30s} {fi:.4f}")
 
     return {
+        "lr":            {"p": p_lr,   "y_pred": y_pred_lr,   "t": t_lr,
+                          "params": lr.best_params_},
         "svm":           {"p": p_svm,  "y_pred": y_pred_svm,  "t": t_svm,
                           "params": svm.best_params_},
         "rf":            {"p": p_rf,   "y_pred": y_pred_rf,   "t": t_rf,
@@ -113,8 +131,8 @@ def run_classical_baselines(X_tr_cls, y_tr, X_te_cls, y_te, feat_names):
                           "params": xgb.best_params_},
         "feat_imp":      feat_imp,
         "spw":           spw,
-        "xgb_model":     xgb_final,    # fitted model for SHAP
-        "svm_estimator": svm,          # GridSearchCV → .best_estimator_ for permutation importance
+        "xgb_model":     xgb_final,
+        "svm_estimator": svm,
     }
 
 

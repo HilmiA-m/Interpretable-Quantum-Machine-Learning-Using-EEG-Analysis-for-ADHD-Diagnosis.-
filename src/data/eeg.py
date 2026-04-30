@@ -60,6 +60,7 @@ def extract_eeg_features(csv_path):
         info   = mne.create_info(data_v.shape[0], fs, ch_types="eeg")
         raw    = mne.io.RawArray(data_v, info, verbose=False)
         raw.filter(1, 45, fir_design="firwin", verbose=False)
+        raw.set_eeg_reference("average", projection=False, verbose=False)
 
         # ── Artifact rejection via 4-second epochs ───────────────────────────
         # Clean epochs are used for the main PSD if ≥ 4 survive; otherwise

@@ -66,7 +66,8 @@ def run():
 
     # ── 6. Preprocess ────────────────────────────────────────────────────────
     print(f"\n[6] Split → StandardScale → PCA-{config.N_PCA} (quantum) / raw (classical)")
-    data = preprocess(X_raw, y)
+    data = preprocess(X_raw, y, feat_names)
+    feat_names = data["feat_names"]   # updated after zero-variance removal
 
     y_tr     = data["y_tr"]
     y_te     = data["y_te"]
@@ -108,6 +109,7 @@ def run():
         "VQC":     model_row(y_te, vqc["y_pred"],        vqc["p"]),
         "QSVM-ZZ": model_row(y_te, qsvm["y_pred"],       qsvm["p"]),
         "QCNN-8":  model_row(y_te, qcnn["y_pred"],       qcnn["p"]),
+        "LR":      model_row(y_te, cls["lr"]["y_pred"],   cls["lr"]["p"]),
         "SVM":     model_row(y_te, cls["svm"]["y_pred"],  cls["svm"]["p"]),
         "RF":      model_row(y_te, cls["rf"]["y_pred"],   cls["rf"]["p"]),
         "XGBoost": model_row(y_te, cls["xgb"]["y_pred"],  cls["xgb"]["p"]),
@@ -132,13 +134,15 @@ def run():
     print(f"  Best PR-AUC : {best_pr}  = {results[best_pr]['pr_auc']:.3f}")
 
     # ── 11b. Pairwise statistical significance tests ──────────────────────────
-    probas     = {"VQC": vqc["p"],       "QSVM-ZZ": qsvm["p"],      "QCNN-8": qcnn["p"],
-                  "SVM": cls["svm"]["p"], "RF": cls["rf"]["p"],      "XGBoost": cls["xgb"]["p"]}
-    preds      = {"VQC": vqc["y_pred"],  "QSVM-ZZ": qsvm["y_pred"], "QCNN-8": qcnn["y_pred"],
-                  "SVM": cls["svm"]["y_pred"], "RF": cls["rf"]["y_pred"],
-                  "XGBoost": cls["xgb"]["y_pred"]}
-    thresholds = {"VQC": vqc["t"],       "QSVM-ZZ": qsvm["t"],      "QCNN-8": qcnn["t"],
-                  "SVM": cls["svm"]["t"], "RF": cls["rf"]["t"],      "XGBoost": cls["xgb"]["t"]}
+    probas     = {"VQC": vqc["p"],        "QSVM-ZZ": qsvm["p"],      "QCNN-8": qcnn["p"],
+                  "LR":  cls["lr"]["p"],  "SVM": cls["svm"]["p"],    "RF": cls["rf"]["p"],
+                  "XGBoost": cls["xgb"]["p"]}
+    preds      = {"VQC": vqc["y_pred"],   "QSVM-ZZ": qsvm["y_pred"], "QCNN-8": qcnn["y_pred"],
+                  "LR":  cls["lr"]["y_pred"], "SVM": cls["svm"]["y_pred"],
+                  "RF":  cls["rf"]["y_pred"], "XGBoost": cls["xgb"]["y_pred"]}
+    thresholds = {"VQC": vqc["t"],        "QSVM-ZZ": qsvm["t"],      "QCNN-8": qcnn["t"],
+                  "LR":  cls["lr"]["t"],  "SVM": cls["svm"]["t"],    "RF": cls["rf"]["t"],
+                  "XGBoost": cls["xgb"]["t"]}
     from src.stats import run_significance_tests
     run_significance_tests(y_te, preds, probas, _run_id)
 
@@ -206,7 +210,8 @@ VQC     : {config.N_QUBITS}q×{config.N_LAYERS}L, full CZ, {N_PARAMS_VQC}p, {con
           runner: {config.WORKER_SCRIPT}
           {vqc['n_good']}/{config.N_RESTARTS} restarts succeeded
 QSVM-ZZ : ZZ/IQP 2 reps, C={qsvm['best_C']}{nystr_tag}{ctr_tag}
-QCNN-8  : {config.N_QCNN_QUBITS}q, {config.N_QCNN_PARAMS}p, {config.QCNN_RESTARTS}R×{config.QCNN_EPOCHS}ep, top-{config.QCNN_TOP_K}
+QCNN-8  : {config.N_QCNN_QUBITS}q, {config.N_QCNN_PARAMS}p (70 circ+8 readout+1), {config.QCNN_RESTARTS}R×{config.QCNN_EPOCHS}ep, top-{config.QCNN_TOP_K}
+LR      : class_weight=balanced, {cls['lr']['params']}
 SVM     : class_weight=balanced, {cls['svm']['params']}
 RF      : class_weight=balanced, {cls['rf']['params']}
 XGBoost : scale_pos_weight={cls['spw']:.2f}, {cls['xgb']['params']}

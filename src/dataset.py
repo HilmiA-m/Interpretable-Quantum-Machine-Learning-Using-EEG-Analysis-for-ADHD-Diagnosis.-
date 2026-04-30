@@ -83,11 +83,7 @@ def build_dataset(user_meta, embrace_lookup, embrace_cols):
             med = np.nanmedian(X_raw[~m, col]) if (~m).any() else 0.0
             X_raw[m, col] = med
 
-    # ── Remove zero-variance features ───────────────────────────────────────
-    var_mask = X_raw.std(axis=0) > 1e-10
-    X_raw    = X_raw[:, var_mask]
-
-    base_names = (
+    feat_names = (
         ["age", "gender"]
         + EEG_FEAT_NAMES
         + ["TBR_delta", "alpha_asym_delta", "occ_alpha_delta",
@@ -98,21 +94,28 @@ def build_dataset(user_meta, embrace_lookup, embrace_cols):
            "RT_cv_per_block", "omission_rate"]
         + ["game_velocity", "game_omissions", "game_commissions"]
     )
-    feat_names = [base_names[i] for i in range(len(base_names))
-                  if i < len(var_mask) and var_mask[i]]
 
     print(f"  Final dataset : n={len(y)}, ADHD={int(y.sum())}, Ctrl={int((y == 0).sum())}")
     print(f"  Feature matrix: {X_raw.shape}")
     return X_raw, y, uid_list, feat_names
 
 
-def preprocess(X_raw, y):
+def preprocess(X_raw, y, feat_names):
     idx_all = np.arange(len(y))
     idx_tr, idx_te = train_test_split(
         idx_all, test_size=config.TEST_SIZE, random_state=42, stratify=y)
     y_tr = y[idx_tr]; y_te = y[idx_te]
     X_tr_raw = X_raw[idx_tr].copy()
     X_te_raw = X_raw[idx_te].copy()
+
+    # ── Remove zero-variance features (computed on train only) ───────────────
+    var_mask    = X_tr_raw.std(axis=0) > 1e-10
+    X_tr_raw    = X_tr_raw[:, var_mask]
+    X_te_raw    = X_te_raw[:, var_mask]
+    feat_names  = [fn for fn, keep in zip(feat_names, var_mask) if keep]
+    n_dropped   = int((~var_mask).sum())
+    if n_dropped:
+        print(f"  Dropped {n_dropped} zero-variance features (train-only check)")
 
     # ── Winsorize on training statistics to cap extreme outliers ────────────
     # 5th/95th percentile bounds computed on train, applied to both splits.
@@ -151,4 +154,5 @@ def preprocess(X_raw, y):
         y_tr=y_tr,         y_te=y_te,
         ss_q=ss_q,         pca=pca,  mm=mm,
         lower=lower,        upper=upper,
+        feat_names=feat_names,
     )

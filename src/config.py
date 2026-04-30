@@ -1,6 +1,7 @@
 import os
 
-DATA_ROOT = "/Users/mah/Desktop/BALLADEER_Quantum/BALLADEER ADHD DATASET"
+_DEFAULT_DATA = "/Users/mah/Desktop/BALLADEER_Quantum/BALLADEER ADHD DATASET"
+DATA_ROOT = os.environ.get("BALLADEER_DATA", _DEFAULT_DATA)
 DEMO_JSON = os.path.join(DATA_ROOT, "users_demographics.json")
 
 N_QUBITS = 8
@@ -25,7 +26,7 @@ MAX_RESTART_SECS = 600
 
 # QCNN
 N_QCNN_QUBITS  = 8
-N_QCNN_PARAMS  = 70
+N_QCNN_PARAMS  = 79   # 70 circuit + 8 readout weights + 1 bias
 QCNN_RESTARTS  = 16
 QCNN_TOP_K     = 4
 QCNN_EPOCHS    = 300

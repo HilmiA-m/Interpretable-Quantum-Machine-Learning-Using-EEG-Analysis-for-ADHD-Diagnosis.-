@@ -14,6 +14,7 @@ _COLORS = {
     "VQC":     "royalblue",
     "QSVM-ZZ": "indigo",
     "QCNN-8":  "mediumslateblue",
+    "LR":      "peru",
     "SVM":     "darkorange",
     "RF":      "forestgreen",
     "XGBoost": "crimson",
@@ -36,7 +37,7 @@ def _save_roc(y_te, probas, run_id):
         except: auc = float("nan")
         ls = "--" if "Q" in name else "-"
         ax.plot(fpr, tpr, label=f"{name} (AUC={auc:.3f})",
-                color=_COLORS[name], lw=1.8, ls=ls)
+                color=_COLORS.get(name, "gray"), lw=1.8, ls=ls)
     ax.plot([0, 1], [0, 1], "k--", alpha=0.3)
     ax.set_xlabel("FPR"); ax.set_ylabel("TPR")
     ax.set_title(f"ROC — BALLADEER ADHD ({run_id})")
@@ -55,7 +56,7 @@ def _save_pr(y_te, probas, run_id):
         except: ap = float("nan")
         ls = "--" if "Q" in name else "-"
         ax.plot(rec_c, prec_c, label=f"{name} (AP={ap:.3f})",
-                color=_COLORS[name], lw=1.8, ls=ls)
+                color=_COLORS.get(name, "gray"), lw=1.8, ls=ls)
     baseline = y_te.mean()
     ax.axhline(baseline, color="k", ls="--", alpha=0.3, label=f"Baseline={baseline:.2f}")
     ax.set_xlabel("Recall"); ax.set_ylabel("Precision")
@@ -68,14 +69,20 @@ def _save_pr(y_te, probas, run_id):
 
 
 def _save_confusion(y_te, preds, probas, thresholds, run_id):
-    fig, axes = plt.subplots(2, 3, figsize=(15, 8))
-    for ax, (name, yp) in zip(axes.flatten(), preds.items()):
+    n = len(preds)
+    ncols = min(n, 4)
+    nrows = (n + ncols - 1) // ncols
+    fig, axes = plt.subplots(nrows, ncols, figsize=(ncols * 4, nrows * 3.5))
+    ax_flat = np.array(axes).flatten()
+    for ax, (name, yp) in zip(ax_flat, preds.items()):
         cm = confusion_matrix(y_te, yp)
         sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax, cbar=False,
                     xticklabels=["Ctrl", "ADHD"], yticklabels=["Ctrl", "ADHD"])
         try:    auc = roc_auc_score(y_te, probas[name])
         except: auc = float("nan")
         ax.set_title(f"{name}  AUC={auc:.3f}  thr={thresholds[name]:.2f}")
+    for ax in ax_flat[n:]:
+        ax.set_visible(False)
     fig.suptitle(f"Confusion Matrices — BALLADEER ADHD ({run_id})", y=1.01, fontsize=12)
     fig.tight_layout()
     fname = f"confusion_matrices_{run_id}.png"

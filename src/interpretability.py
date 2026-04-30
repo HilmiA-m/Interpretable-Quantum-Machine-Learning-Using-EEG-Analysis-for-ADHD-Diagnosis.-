@@ -197,8 +197,9 @@ def calibration_curves(y_te, probas, run_id):
     print("\n[interp] Calibration curves...")
     _COLORS = {
         "VQC":     "royalblue",    "QSVM-ZZ": "indigo",
-        "QCNN-8":  "mediumslateblue", "SVM":  "darkorange",
-        "RF":      "forestgreen",  "XGBoost": "crimson",
+        "QCNN-8":  "mediumslateblue", "LR":   "peru",
+        "SVM":     "darkorange",   "RF":      "forestgreen",
+        "XGBoost": "crimson",
     }
     from sklearn.calibration import calibration_curve
 

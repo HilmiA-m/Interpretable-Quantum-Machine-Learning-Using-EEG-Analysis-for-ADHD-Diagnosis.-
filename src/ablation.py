@@ -16,7 +16,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import StratifiedKFold, cross_val_score
+from sklearn.model_selection import StratifiedKFold, cross_validate
+from sklearn.metrics import make_scorer, f1_score
 from xgboost import XGBClassifier
 
 from src import config
@@ -112,15 +113,25 @@ def run_ablation(X_tr_raw, y_tr, feat_names, run_id):
         X_sub = X_tr_raw[:, mask]
         n_sel = int(mask.sum())
         results[subset_name] = {}
+        _scoring = {
+            "roc_auc": "roc_auc",
+            "f1":      make_scorer(f1_score, zero_division=0),
+        }
         for model_name, model in _make_models().items():
-            scores = cross_val_score(
-                model, X_sub, y_tr, cv=cv, scoring="roc_auc", n_jobs=-1)
-            mu  = float(scores.mean())
-            std = float(scores.std())
-            results[subset_name][model_name] = {"mean": mu, "std": std,
-                                                "n_features": n_sel}
+            cv_out = cross_validate(
+                model, X_sub, y_tr, cv=cv, scoring=_scoring, n_jobs=-1)
+            auc_mu = float(cv_out["test_roc_auc"].mean())
+            auc_sd = float(cv_out["test_roc_auc"].std())
+            f1_mu  = float(cv_out["test_f1"].mean())
+            f1_sd  = float(cv_out["test_f1"].std())
+            results[subset_name][model_name] = {
+                "auc_mean": auc_mu, "auc_std": auc_sd,
+                "f1_mean":  f1_mu,  "f1_std":  f1_sd,
+                "n_features": n_sel,
+            }
             print(f"  {subset_name:<22s} | {model_name:<8s}: "
-                  f"AUC = {mu:.3f} ± {std:.3f}  (n_feat={n_sel})")
+                  f"AUC={auc_mu:.3f}±{auc_sd:.3f}  "
+                  f"F1={f1_mu:.3f}±{f1_sd:.3f}  (n={n_sel})")
 
     # ── JSON ──────────────────────────────────────────────────────────────────
     payload = {"run_id": run_id, "cv": "5-fold StratifiedKFold",
@@ -130,43 +141,45 @@ def run_ablation(X_tr_raw, y_tr, feat_names, run_id):
         json.dump(payload, f, indent=2)
     print(f"  [OK] RESULTS/ablation_{run_id}.json")
 
-    # ── Bar chart ─────────────────────────────────────────────────────────────
+    # ── Bar chart: AUC (left) + F1 (right) ───────────────────────────────────
     subset_names = list(_SUBSETS.keys())
     model_names  = ["SVM", "RF", "XGBoost"]
     colors       = ["steelblue", "forestgreen", "crimson"]
-    x = np.arange(len(subset_names))
+    x     = np.arange(len(subset_names))
     width = 0.25
 
-    fig, ax = plt.subplots(figsize=(13, 6))
-    for k, (mname, col) in enumerate(zip(model_names, colors)):
-        means = []
-        stds  = []
-        for sname in subset_names:
-            info = results.get(sname, {}).get(mname, {})
-            means.append(info.get("mean", 0.0))
-            stds.append(info.get("std",  0.0))
-        means = np.array(means)
-        stds  = np.array(stds)
-        bars = ax.bar(x + (k - 1) * width, means, width,
-                      yerr=stds, capsize=3, label=mname,
-                      color=col, alpha=0.82, error_kw={"elinewidth": 1.2})
-        for bar, mu in zip(bars, means):
-            if mu > 0:
-                ax.text(bar.get_x() + bar.get_width() / 2,
-                        bar.get_height() + 0.005,
-                        f"{mu:.2f}", ha="center", va="bottom", fontsize=7)
+    fig, axes = plt.subplots(1, 2, figsize=(20, 6), sharey=False)
+    for metric, ax, ylabel, chance in [
+        ("auc", axes[0], "ROC-AUC (5-fold CV)", 0.5),
+        ("f1",  axes[1], "F1 Score (5-fold CV)", None),
+    ]:
+        for k, (mname, col) in enumerate(zip(model_names, colors)):
+            means = np.array([
+                results.get(s, {}).get(mname, {}).get(f"{metric}_mean", 0.0)
+                for s in subset_names])
+            stds  = np.array([
+                results.get(s, {}).get(mname, {}).get(f"{metric}_std", 0.0)
+                for s in subset_names])
+            bars = ax.bar(x + (k - 1) * width, means, width,
+                          yerr=stds, capsize=3, label=mname,
+                          color=col, alpha=0.82, error_kw={"elinewidth": 1.2})
+            for bar, mu in zip(bars, means):
+                if mu > 0:
+                    ax.text(bar.get_x() + bar.get_width() / 2,
+                            bar.get_height() + 0.005,
+                            f"{mu:.2f}", ha="center", va="bottom", fontsize=6.5)
+        ax.set_xticks(x)
+        ax.set_xticklabels(subset_names, rotation=25, ha="right", fontsize=9)
+        ax.set_ylabel(ylabel, fontsize=11)
+        ax.set_ylim(0, 1.05)
+        if chance is not None:
+            ax.axhline(chance, color="black", lw=0.8, ls="--", alpha=0.4, label="Chance")
+        ax.legend(fontsize=9)
+        ax.grid(axis="y", alpha=0.3)
 
-    ax.set_xticks(x)
-    ax.set_xticklabels(subset_names, rotation=25, ha="right", fontsize=9)
-    ax.set_ylabel("ROC-AUC (5-fold CV)", fontsize=11)
-    ax.set_ylim(0.4, 1.0)
-    ax.axhline(0.5, color="black", lw=0.8, ls="--", alpha=0.4, label="Chance")
-    ax.legend(fontsize=9)
-    ax.set_title(
-        f"Modality Ablation Study — ROC-AUC per feature subset ({run_id})\n"
-        f"Error bars = ±1 SD across 5 folds",
-        fontsize=11, fontweight="bold")
-    ax.grid(axis="y", alpha=0.3)
+    fig.suptitle(
+        f"Modality Ablation Study ({run_id})  —  Error bars = ±1 SD (5-fold CV)",
+        fontsize=12, fontweight="bold")
     fig.tight_layout()
     fname = f"ablation_{run_id}.png"
     fig.savefig(os.path.join(config.RESULTS_DIR, fname), dpi=150, bbox_inches="tight")
