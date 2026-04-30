@@ -214,6 +214,6 @@ Outputs (RESULTS/):
   pca_loadings_{_run_id}.png
   vqc_encoding_{_run_id}.png
   calibration_{_run_id}.png
-  best_quantum_params_v40.npy
+  best_quantum_params_v40.json
 {'='*72}
 """)

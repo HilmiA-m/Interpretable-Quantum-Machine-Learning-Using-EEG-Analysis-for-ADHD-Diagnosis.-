@@ -189,8 +189,16 @@ def run_vqc(X_tr_raw, y_tr, X_te_q, y_te, ss_q, pca, mm):
         np.stack([vqc_proba(rec["params"], X_te_q) for rec in top_k]),
         axis=0, weights=w_k)
     os.makedirs(config.RESULTS_DIR, exist_ok=True)
-    np.save(os.path.join(config.RESULTS_DIR, "best_quantum_params_v40.npy"),
-            np.array(top_k[0]["params"]))
+    import json as _json
+    _params_payload = {
+        "params":   top_k[0]["params"].tolist(),
+        "val_auc":  float(top_k[0]["val_auc"]),
+        "n_qubits": config.N_QUBITS,
+        "n_layers": config.N_LAYERS,
+        "n_params": int(_N_PARAMS),
+    }
+    with open(os.path.join(config.RESULTS_DIR, "best_quantum_params_v40.json"), "w") as _f:
+        _json.dump(_params_payload, _f, indent=2)
 
     t_vqc, y_pred_vqc, _ = report("VQC", y_te, p_vqc, y_val, p_vqc_val)
     return {
