@@ -8,18 +8,18 @@ from src import config
 from src.metrics import report
 
 def _pick_device(n_wires, label=""):
-    for name, _ in [("lightning.gpu", "adjoint"),
-                    ("lightning.qubit", "adjoint"),
-                    ("default.qubit", "backprop")]:
+    for name, diff in [("lightning.gpu", "adjoint"),
+                       ("lightning.qubit", "adjoint"),
+                       ("default.qubit", "backprop")]:
         try:
             d = qml.device(name, wires=n_wires)
             print(f"    [{label}] {name}")
-            return d
+            return d, diff
         except Exception:
             continue
     raise RuntimeError("No PennyLane device available")
 
-_dev_qcnn = _pick_device(config.N_QCNN_QUBITS, "QCNN")
+_dev_qcnn, _DIFF_QCNN = _pick_device(config.N_QCNN_QUBITS, "QCNN")
 
 
 def _conv(p, w):
@@ -43,7 +43,7 @@ _N_READ = config.N_QCNN_QUBITS  # one readout weight per qubit
 # Total params = _N_CIRC + _N_READ + 1 (bias) = 79 = config.N_QCNN_PARAMS
 
 
-@qml.qnode(_dev_qcnn, interface="autograd", diff_method="backprop")
+@qml.qnode(_dev_qcnn, interface="autograd", diff_method=_DIFF_QCNN)
 def _qcnn_circuit(params, x):
     for q in range(config.N_QCNN_QUBITS):
         qml.RY(x[q], wires=q)
