@@ -1,3 +1,5 @@
+import json
+import os
 import numpy as np
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
@@ -7,6 +9,32 @@ from src import config
 from src.data.eeg import extract_eeg_features, find_eeg_file
 from src.data.behavioural import extract_tags_features, extract_game_features
 from src.data.embrace import get_embrace
+
+_PROC_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "data", "processed")
+
+
+def processed_data_exists():
+    return os.path.exists(os.path.join(_PROC_DIR, "X.npy"))
+
+
+def load_processed():
+    """Load pre-extracted feature matrix saved by preprocess.py."""
+    X_raw = np.load(os.path.join(_PROC_DIR, "X.npy"))
+    y     = np.load(os.path.join(_PROC_DIR, "y.npy"))
+    with open(os.path.join(_PROC_DIR, "feat_names.json")) as f:
+        feat_names = json.load(f)
+    with open(os.path.join(_PROC_DIR, "uid_list.json")) as f:
+        uid_list = json.load(f)
+    with open(os.path.join(_PROC_DIR, "meta.json")) as f:
+        meta = json.load(f)
+    print(f"  [processed] Loaded from {_PROC_DIR}")
+    print(f"  Subjects={meta['n_subjects']}  "
+          f"ADHD={meta['n_adhd']}  Control={meta['n_control']}  "
+          f"Features={meta['n_features']}")
+    print(f"  Extracted at: {meta.get('extracted_at', 'unknown')}")
+    return X_raw, y, uid_list, feat_names
 
 # 22 EEG features — must match the return order of extract_eeg_features()
 EEG_FEAT_NAMES = [

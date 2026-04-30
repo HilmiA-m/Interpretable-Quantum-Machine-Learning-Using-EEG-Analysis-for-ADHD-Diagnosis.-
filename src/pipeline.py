@@ -42,7 +42,7 @@ def run(skip_vqc=False, skip_qsvm=False, skip_qcnn=False):
             _probe = extract_eeg_features(p)
             if _probe is not None:
                 break
-    n_eeg_feats = len(_probe) if _probe is not None else 15
+    n_eeg_feats = len(_probe) if _probe is not None else 22
     print(f"\n[2] EEG: {n_eeg_feats} curated feats/activity (averaged across 3 levels)")
 
     # ── 3. Behavioural note (extraction happens inside build_dataset) ─────────

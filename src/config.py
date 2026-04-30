@@ -1,8 +1,6 @@
 import os
 
-_src_dir_early = os.path.dirname(os.path.abspath(__file__))
-_proj_dir_early = os.path.dirname(_src_dir_early)
-_DEFAULT_DATA   = os.path.join(_proj_dir_early, "data")
+_DEFAULT_DATA = "/Users/mah/Desktop/BALLADEER_Quantum/BALLADEER ADHD DATASET"
 DATA_ROOT = os.environ.get("BALLADEER_DATA", _DEFAULT_DATA)
 DEMO_JSON = os.path.join(DATA_ROOT, "users_demographics.json")
 

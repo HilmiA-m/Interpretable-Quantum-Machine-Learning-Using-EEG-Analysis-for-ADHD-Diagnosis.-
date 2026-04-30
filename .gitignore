@@ -1,6 +1,9 @@
-# Dataset — never commit patient data
+# Dataset — never commit patient data (raw or processed)
 data/
 !data/.gitkeep
+!data/processed/
+data/processed/*.npy
+data/processed/*.json
 
 # Python
 __pycache__/
