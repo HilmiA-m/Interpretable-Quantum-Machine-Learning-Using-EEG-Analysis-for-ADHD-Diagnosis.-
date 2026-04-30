@@ -262,17 +262,3 @@ Variational quantum circuits are highly non-convex. A single random initialisati
 Default 0.5 threshold is arbitrary on imbalanced data. Calibrating on out-of-fold predictions picks the F1-optimal decision boundary without ever touching the test set.
 
 ---
-
-## Citation
-
-If you use this work, please cite:
-
-```bibtex
-@misc{balladeer2025,
-  title   = {Interpretable Quantum Machine Learning for ADHD Diagnosis Using EEG},
-  author  = {Harchim, Amine},
-  year    = {2025},
-  note    = {GitHub repository},
-  url     = {https://github.com/HilmiA-m/Interpretable-Quantum-Machine-Learning-Using-EEG-Analysis-for-ADHD-Diagnosis.-}
-}
-```
