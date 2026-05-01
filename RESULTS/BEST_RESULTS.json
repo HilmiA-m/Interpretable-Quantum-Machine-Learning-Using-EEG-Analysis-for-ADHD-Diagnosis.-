@@ -1,0 +1,49 @@
+{
+  "last_updated": "2026-05-01T00:22:14",
+  "best_overall": {
+    "acc": {
+      "model": "QCNN-8",
+      "value": 0.846154,
+      "run_id": "run_20260501_002214",
+      "timestamp": "2026-05-01T00:22:14"
+    },
+    "f1": {
+      "model": "QCNN-8",
+      "value": 0.894737,
+      "run_id": "run_20260501_002214",
+      "timestamp": "2026-05-01T00:22:14"
+    },
+    "roc_auc": {
+      "model": "RF",
+      "value": 0.836601,
+      "run_id": "run_20260501_002214",
+      "timestamp": "2026-05-01T00:22:14"
+    },
+    "pr_auc": {
+      "model": "RF",
+      "value": 0.899806,
+      "run_id": "run_20260501_002214",
+      "timestamp": "2026-05-01T00:22:14"
+    }
+  },
+  "runs": [
+    {
+      "run_id": "run_20260501_002214",
+      "timestamp": "2026-05-01T00:22:14",
+      "n_subjects": 127,
+      "best_roc_auc": 0.836601,
+      "best_f1": 0.894737,
+      "best_acc": 0.846154,
+      "best_model": "RF",
+      "all_roc_auc": {
+        "VQC": 0.75817,
+        "QSVM-ZZ": 0.529412,
+        "QCNN-8": 0.79085,
+        "LR": 0.75817,
+        "SVM": 0.75817,
+        "RF": 0.836601,
+        "XGBoost": 0.803922
+      }
+    }
+  ]
+}
