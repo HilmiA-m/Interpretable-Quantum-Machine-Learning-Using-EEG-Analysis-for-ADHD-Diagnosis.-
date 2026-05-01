@@ -1,0 +1,101 @@
+{
+  "run_id": "run_20260501_020934",
+  "timestamp": "2026-05-01T02:09:34",
+  "dataset": {
+    "n_subjects": 127,
+    "n_adhd": 82,
+    "n_control": 45,
+    "n_features": 52
+  },
+  "config": {
+    "n_qubits": 8,
+    "n_layers": 5,
+    "n_pca": 8,
+    "n_restarts": 12,
+    "epochs": 400,
+    "ensemble_k": 4,
+    "test_size": 0.2
+  },
+  "models": {
+    "VQC": {
+      "acc": 0.615385,
+      "prec": 0.733333,
+      "rec": 0.647059,
+      "f1": 0.6875,
+      "roc_auc": 0.75817,
+      "pr_auc": 0.815305
+    },
+    "QSVM-ZZ": {
+      "acc": 0.653846,
+      "prec": 0.653846,
+      "rec": 1.0,
+      "f1": 0.790698,
+      "roc_auc": 0.679739,
+      "pr_auc": 0.766297
+    },
+    "QCNN-8": {
+      "acc": 0.692308,
+      "prec": 0.8,
+      "rec": 0.705882,
+      "f1": 0.75,
+      "roc_auc": 0.738562,
+      "pr_auc": 0.774978
+    },
+    "LR": {
+      "acc": 0.730769,
+      "prec": 0.777778,
+      "rec": 0.823529,
+      "f1": 0.8,
+      "roc_auc": 0.75817,
+      "pr_auc": 0.863613
+    },
+    "SVM": {
+      "acc": 0.769231,
+      "prec": 0.761905,
+      "rec": 0.941176,
+      "f1": 0.842105,
+      "roc_auc": 0.75817,
+      "pr_auc": 0.856878
+    },
+    "RF": {
+      "acc": 0.846154,
+      "prec": 0.809524,
+      "rec": 1.0,
+      "f1": 0.894737,
+      "roc_auc": 0.836601,
+      "pr_auc": 0.899806
+    },
+    "XGBoost": {
+      "acc": 0.846154,
+      "prec": 0.809524,
+      "rec": 1.0,
+      "f1": 0.894737,
+      "roc_auc": 0.803922,
+      "pr_auc": 0.838959
+    }
+  },
+  "best": {
+    "acc": {
+      "model": "RF",
+      "value": 0.846154
+    },
+    "f1": {
+      "model": "RF",
+      "value": 0.894737
+    },
+    "roc_auc": {
+      "model": "RF",
+      "value": 0.836601
+    },
+    "pr_auc": {
+      "model": "RF",
+      "value": 0.899806
+    }
+  },
+  "figures": [
+    "roc_curves_run_20260501_020934.png",
+    "pr_curves_run_20260501_020934.png",
+    "confusion_matrices_run_20260501_020934.png",
+    "feature_importance_run_20260501_020934.png"
+  ]
+}
