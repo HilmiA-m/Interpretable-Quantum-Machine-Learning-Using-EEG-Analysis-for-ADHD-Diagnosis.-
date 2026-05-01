@@ -39,8 +39,8 @@ def _pool(p, w):
 
 
 _N_CIRC = 70   # conv+pool circuit parameters (fixed layout)
-_N_READ = config.N_QCNN_QUBITS  # one readout weight per qubit
-# Total params = _N_CIRC + _N_READ + 1 (bias) = 79 = config.N_QCNN_PARAMS
+_N_READ = 1    # single readout weight for qubit-0 (the final pooled qubit)
+# Total params = _N_CIRC + _N_READ + 1 (bias) = 72 = config.N_QCNN_PARAMS
 
 
 @qml.qnode(_dev_qcnn, interface="autograd", diff_method=_DIFF_QCNN)
@@ -55,16 +55,16 @@ def _qcnn_circuit(params, x):
     _pool(params[56:58], [0, 2]); _pool(params[58:60], [4, 6])
     _conv(params[60:68], [0, 4])
     _pool(params[68:70], [0, 4])
-    return [qml.expval(qml.PauliZ(q)) for q in range(config.N_QCNN_QUBITS)]
+    return qml.expval(qml.PauliZ(0))  # qubit 0 is the final pooled qubit
 
 
 def _qcnn_proba(params, X):
-    w = params[_N_CIRC: _N_CIRC + _N_READ]
+    w = params[_N_CIRC]   # scalar readout weight
     b = params[-1]
     out = []
     for x in X:
-        evs    = pnp.stack(_qcnn_circuit(params[:_N_CIRC], x))
-        logit  = b + pnp.sum(w * evs)
+        ev    = _qcnn_circuit(params[:_N_CIRC], x)
+        logit = b + w * ev
         out.append(float(1.0 / (1.0 + pnp.exp(-pnp.clip(logit, -15, 15)))))
     return np.array(out)
 
@@ -73,12 +73,12 @@ def _qcnn_bce(params, Xb, yb):
     n_pos = max(sum(1 for yi in yb if yi == 1), 1)
     n_neg = max(len(yb) - n_pos, 1)
     w_pos = n_neg / n_pos
-    w_r   = params[_N_CIRC: _N_CIRC + _N_READ]
+    w_r   = params[_N_CIRC]   # scalar readout weight
     b     = params[-1]
     tot   = pnp.array(0.0, requires_grad=True)
     for xi, yi in zip(Xb, yb):
-        evs   = pnp.stack(_qcnn_circuit(params[:_N_CIRC], xi))
-        logit = b + pnp.sum(w_r * evs)
+        ev    = _qcnn_circuit(params[:_N_CIRC], xi)
+        logit = b + w_r * ev
         p     = pnp.clip(1.0 / (1.0 + pnp.exp(-pnp.clip(logit, -15, 15))),
                          1e-7, 1 - 1e-7)
         pt    = p if yi == 1 else (1 - p)
@@ -107,9 +107,9 @@ def run_qcnn(X_tr_raw, y_tr, X_te_q, y_te, ss_q, pca, mm):
         pnp.random.seed(300 + r * 77)
         p = pnp.array(
             pnp.concatenate([
-                0.1 * pnp.random.randn(_N_CIRC),
-                0.1 * pnp.random.randn(_N_READ),
-                pnp.array([0.0]),
+                0.3 * pnp.random.randn(_N_CIRC),  # wider init breaks barren plateau
+                pnp.ones(_N_READ),                 # readout weight starts at 1
+                pnp.array([0.0]),                  # bias starts at 0
             ]),
             requires_grad=True,
         )

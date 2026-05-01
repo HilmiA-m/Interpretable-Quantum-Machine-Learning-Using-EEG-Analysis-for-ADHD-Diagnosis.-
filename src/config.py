@@ -26,7 +26,7 @@ MAX_RESTART_SECS = 600
 
 # QCNN
 N_QCNN_QUBITS  = 8
-N_QCNN_PARAMS  = 79   # 70 circuit + 8 readout weights + 1 bias
+N_QCNN_PARAMS  = 72   # 70 circuit + 1 readout weight + 1 bias (single qubit-0 readout)
 QCNN_RESTARTS  = 16
 QCNN_TOP_K     = 4
 QCNN_EPOCHS    = 300
@@ -37,8 +37,9 @@ QCNN_PATIENCE  = 8
 QCNN_MIN_DELTA = 0.002
 
 # QSVM
-QSVM_C_GRID        = [1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 5e-1, 1.0, 3.0, 10.0, 30.0, 100.0, 300.0]
-QSVM_KERNEL_CENTER = True
+QSVM_C_GRID        = [1e-4, 1e-3, 5e-3, 1e-2, 5e-2, 1e-1, 5e-1, 1.0, 3.0, 10.0, 30.0, 100.0]
+QSVM_KERNEL_CENTER = False   # centering compresses probabilities → degenerate threshold
+QSVM_N_REPS        = 1       # 1 rep is more discriminative than 2 on small datasets
 NYSTROEM_TRIGGER   = 120
 NYSTROEM_M         = 40
 

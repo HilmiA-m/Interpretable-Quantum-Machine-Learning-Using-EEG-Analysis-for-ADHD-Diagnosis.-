@@ -23,7 +23,7 @@ def _pick_device(n_wires, label=""):
 _dev_k = _pick_device(config.N_QUBITS, "QSVM")
 
 
-def _zz_map(x, n_reps=2):
+def _zz_map(x, n_reps=config.QSVM_N_REPS):
     for _ in range(n_reps):
         for q in range(config.N_QUBITS):
             qml.Hadamard(wires=q)
@@ -105,6 +105,11 @@ def run_qsvm(X_tr_raw, y_tr, X_te_q, y_te, ss_q, pca, mm):
         K_tr    = Phi_tr @ Phi_tr.T
         K_te    = Phi_te @ Phi_tr.T
         use_nystroem = True
+
+    diag_mean = np.diag(K_tr).mean()
+    off_vals  = K_tr[np.triu_indices(len(K_tr), k=1)]
+    print(f"    kernel diag={diag_mean:.3f}  off-diag mean={off_vals.mean():.3f}"
+          f"  std={off_vals.std():.3f}")
 
     if config.QSVM_KERNEL_CENTER:
         K_tr, K_te = _center_kernel(K_tr, K_te)
