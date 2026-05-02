@@ -1,0 +1,246 @@
+{
+  "models": [
+    "VQC",
+    "QSVM-ZZ",
+    "QCNN-8",
+    "LR",
+    "SVM",
+    "RF",
+    "XGBoost"
+  ],
+  "n_pairs": 21,
+  "bonferroni_alpha": 0.002381,
+  "pairs": {
+    "VQC_vs_QSVM-ZZ": {
+      "mcnemar_p": 1.0,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": 0.0814,
+      "auc_diff_ci95_lo": -0.2754,
+      "auc_diff_ci95_hi": 0.4348,
+      "auc_diff_sig": false,
+      "n01": 6,
+      "n10": 5
+    },
+    "VQC_vs_QCNN-8": {
+      "mcnemar_p": 0.625,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": 0.0187,
+      "auc_diff_ci95_lo": -0.1072,
+      "auc_diff_ci95_hi": 0.1429,
+      "auc_diff_sig": false,
+      "n01": 3,
+      "n10": 1
+    },
+    "VQC_vs_LR": {
+      "mcnemar_p": 0.5078,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": 0.0022,
+      "auc_diff_ci95_lo": -0.1905,
+      "auc_diff_ci95_hi": 0.1894,
+      "auc_diff_sig": false,
+      "n01": 6,
+      "n10": 3
+    },
+    "VQC_vs_SVM": {
+      "mcnemar_p": 0.2891,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": 0.002,
+      "auc_diff_ci95_lo": -0.175,
+      "auc_diff_ci95_hi": 0.1765,
+      "auc_diff_sig": false,
+      "n01": 6,
+      "n10": 2
+    },
+    "VQC_vs_RF": {
+      "mcnemar_p": 0.0703,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.0787,
+      "auc_diff_ci95_lo": -0.2549,
+      "auc_diff_ci95_hi": 0.0728,
+      "auc_diff_sig": false,
+      "n01": 7,
+      "n10": 1
+    },
+    "VQC_vs_XGBoost": {
+      "mcnemar_p": 0.0703,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.0461,
+      "auc_diff_ci95_lo": -0.2334,
+      "auc_diff_ci95_hi": 0.1238,
+      "auc_diff_sig": false,
+      "n01": 7,
+      "n10": 1
+    },
+    "QSVM-ZZ_vs_QCNN-8": {
+      "mcnemar_p": 1.0,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.0627,
+      "auc_diff_ci95_lo": -0.4084,
+      "auc_diff_ci95_hi": 0.2918,
+      "auc_diff_sig": false,
+      "n01": 6,
+      "n10": 5
+    },
+    "QSVM-ZZ_vs_LR": {
+      "mcnemar_p": 0.7266,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.0792,
+      "auc_diff_ci95_lo": -0.3835,
+      "auc_diff_ci95_hi": 0.2286,
+      "auc_diff_sig": false,
+      "n01": 5,
+      "n10": 3
+    },
+    "QSVM-ZZ_vs_SVM": {
+      "mcnemar_p": 0.375,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.0794,
+      "auc_diff_ci95_lo": -0.3922,
+      "auc_diff_ci95_hi": 0.2387,
+      "auc_diff_sig": false,
+      "n01": 4,
+      "n10": 1
+    },
+    "QSVM-ZZ_vs_RF": {
+      "mcnemar_p": 0.0625,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.1601,
+      "auc_diff_ci95_lo": -0.4625,
+      "auc_diff_ci95_hi": 0.1583,
+      "auc_diff_sig": false,
+      "n01": 5,
+      "n10": 0
+    },
+    "QSVM-ZZ_vs_XGBoost": {
+      "mcnemar_p": 0.0625,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.1275,
+      "auc_diff_ci95_lo": -0.4511,
+      "auc_diff_ci95_hi": 0.2312,
+      "auc_diff_sig": false,
+      "n01": 5,
+      "n10": 0
+    },
+    "QCNN-8_vs_LR": {
+      "mcnemar_p": 1.0,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.0165,
+      "auc_diff_ci95_lo": -0.1834,
+      "auc_diff_ci95_hi": 0.15,
+      "auc_diff_sig": false,
+      "n01": 5,
+      "n10": 4
+    },
+    "QCNN-8_vs_SVM": {
+      "mcnemar_p": 0.7266,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.0166,
+      "auc_diff_ci95_lo": -0.1766,
+      "auc_diff_ci95_hi": 0.1395,
+      "auc_diff_sig": false,
+      "n01": 5,
+      "n10": 3
+    },
+    "QCNN-8_vs_RF": {
+      "mcnemar_p": 0.2188,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.0974,
+      "auc_diff_ci95_lo": -0.25,
+      "auc_diff_ci95_hi": 0.0278,
+      "auc_diff_sig": false,
+      "n01": 5,
+      "n10": 1
+    },
+    "QCNN-8_vs_XGBoost": {
+      "mcnemar_p": 0.2188,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.0648,
+      "auc_diff_ci95_lo": -0.2406,
+      "auc_diff_ci95_hi": 0.0876,
+      "auc_diff_sig": false,
+      "n01": 5,
+      "n10": 1
+    },
+    "LR_vs_SVM": {
+      "mcnemar_p": 1.0,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.0001,
+      "auc_diff_ci95_lo": -0.0533,
+      "auc_diff_ci95_hi": 0.0527,
+      "auc_diff_sig": false,
+      "n01": 2,
+      "n10": 1
+    },
+    "LR_vs_RF": {
+      "mcnemar_p": 0.375,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.0809,
+      "auc_diff_ci95_lo": -0.2222,
+      "auc_diff_ci95_hi": 0.0333,
+      "auc_diff_sig": false,
+      "n01": 4,
+      "n10": 1
+    },
+    "LR_vs_XGBoost": {
+      "mcnemar_p": 0.375,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.0483,
+      "auc_diff_ci95_lo": -0.2382,
+      "auc_diff_ci95_hi": 0.125,
+      "auc_diff_sig": false,
+      "n01": 4,
+      "n10": 1
+    },
+    "SVM_vs_RF": {
+      "mcnemar_p": 0.625,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.0807,
+      "auc_diff_ci95_lo": -0.2223,
+      "auc_diff_ci95_hi": 0.0286,
+      "auc_diff_sig": false,
+      "n01": 3,
+      "n10": 1
+    },
+    "SVM_vs_XGBoost": {
+      "mcnemar_p": 0.625,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": -0.0481,
+      "auc_diff_ci95_lo": -0.225,
+      "auc_diff_ci95_hi": 0.1083,
+      "auc_diff_sig": false,
+      "n01": 3,
+      "n10": 1
+    },
+    "RF_vs_XGBoost": {
+      "mcnemar_p": 1.0,
+      "mcnemar_sig_0.05": false,
+      "mcnemar_sig_bonf": false,
+      "auc_diff_mean": 0.0326,
+      "auc_diff_ci95_lo": -0.0588,
+      "auc_diff_ci95_hi": 0.1334,
+      "auc_diff_sig": false,
+      "n01": 0,
+      "n10": 0
+    }
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-05-01T15:02:22",
+  "last_updated": "2026-05-01T15:58:22",
   "best_overall": {
     "acc": {
       "model": "QCNN-8",
@@ -66,6 +66,24 @@
     {
       "run_id": "run_20260501_150222",
       "timestamp": "2026-05-01T15:02:22",
+      "n_subjects": 127,
+      "best_roc_auc": 0.836601,
+      "best_f1": 0.894737,
+      "best_acc": 0.846154,
+      "best_model": "RF",
+      "all_roc_auc": {
+        "VQC": 0.75817,
+        "QSVM-ZZ": 0.679739,
+        "QCNN-8": 0.738562,
+        "LR": 0.75817,
+        "SVM": 0.75817,
+        "RF": 0.836601,
+        "XGBoost": 0.803922
+      }
+    },
+    {
+      "run_id": "run_20260501_155822",
+      "timestamp": "2026-05-01T15:58:22",
       "n_subjects": 127,
       "best_roc_auc": 0.836601,
       "best_f1": 0.894737,
